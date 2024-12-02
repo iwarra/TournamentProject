@@ -9,6 +9,7 @@ using Tournament.Data.Data;
 using Tournament.Core.Entities;
 using AutoMapper;
 using Tournament.Core.Repositories;
+using Tournament.Core.Dto;
 
 namespace Tournament.Api.Controllers
 {
@@ -29,8 +30,11 @@ namespace Tournament.Api.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Game>>> GetGame()
         {
-            var games = _unitOfWork.GameRepository.GetAllAsync();
-            return Ok(games);
+            var games = await _unitOfWork.GameRepository.GetAllAsync();
+
+            var gameDtos = _mapper.Map<IEnumerable<GameDto>>(games);
+
+            return Ok(gameDtos);
         }
 
         // GET: api/Games/5
@@ -44,19 +48,22 @@ namespace Tournament.Api.Controllers
                 return NotFound();
             }
 
-            return game;
+            var gameDto = _mapper.Map<GameDto>(game);
+
+            return Ok(gameDto);
         }
 
         // PUT: api/Games/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutGame(int id, Game game)
+        public async Task<IActionResult> PutGame(int id, GameDto gameDto)
         {
-            if (id != game.Id)
+            if (id != gameDto.Id)
             {
                 return BadRequest();
             }
 
+            var game = _mapper.Map<Game>(gameDto);
             _unitOfWork.GameRepository.Update(game);
 
             try
@@ -82,12 +89,15 @@ namespace Tournament.Api.Controllers
         // POST: api/Games
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Game>> PostGame(Game game)
+        public async Task<ActionResult<Game>> PostGame(GameDto gameDto)
         {
+            var game = _mapper.Map<Game>(gameDto);
             _unitOfWork.GameRepository.Add(game);
             await _unitOfWork.CompleteAsync();
 
-            return CreatedAtAction("GetGame", new { id = game.Id }, game);
+            var createdGameDto = _mapper.Map<GameDto>(game);
+
+            return CreatedAtAction(nameof(GetGame), new { id = createdGameDto.Id }, createdGameDto);
         }
 
         // DELETE: api/Games/5
@@ -103,7 +113,9 @@ namespace Tournament.Api.Controllers
             _unitOfWork.GameRepository.Remove(game);
             await _unitOfWork.CompleteAsync();
 
-            return NoContent();
+            var deletedGameDto = _mapper.Map<GameDto>(game);
+
+            return Ok(deletedGameDto);
         }
 
         private async Task<bool> GameExists(int id)

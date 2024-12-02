@@ -22,6 +22,8 @@ namespace Tournament.Api
                 .AddXmlDataContractSerializerFormatters();
 
             builder.Services.AddScoped<IUoW, UoW>();
+            builder.Services.AddAutoMapper(typeof(TournamentMappings));
+
 
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
