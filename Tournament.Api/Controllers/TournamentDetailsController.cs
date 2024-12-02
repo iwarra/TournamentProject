@@ -7,32 +7,34 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Tournament.Data.Data;
 using Tournament.Core.Entities;
+using Tournament.Core.Repositories;
 
 namespace Tournament.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class TurnamentDetailsController : ControllerBase
+    public class TournamentDetailsController : ControllerBase
     {
-        private readonly TournamentApiContext _context;
+        private readonly IUoW _unitOfWork;
 
-        public TurnamentDetailsController(TournamentApiContext context)
+        public TournamentDetailsController(IUoW unitOfWork)
         {
-            _context = context;
+            _unitOfWork = unitOfWork;
         }
 
         // GET: api/TurnamentDetails
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TurnamentDetails>>> GetTurnamentDetails()
+        public async Task<ActionResult<IEnumerable<TournamentDetails>>> GetTurnamentDetails()
         {
-            return await _context.TurnamentDetails.ToListAsync();
+            var details = await _unitOfWork.TournamentRepository.GetAllAsync();
+            return Ok(details);
         }
 
         // GET: api/TurnamentDetails/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<TurnamentDetails>> GetTurnamentDetails(int id)
+        public async Task<ActionResult<TournamentDetails>> GetTurnamentDetails(int id)
         {
-            var turnamentDetails = await _context.TurnamentDetails.FindAsync(id);
+            var turnamentDetails = await _unitOfWork.TournamentRepository.GetAsync(id);
 
             if (turnamentDetails == null)
             {
@@ -45,22 +47,23 @@ namespace Tournament.Api.Controllers
         // PUT: api/TurnamentDetails/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutTurnamentDetails(int id, TurnamentDetails turnamentDetails)
+        public async Task<IActionResult> PutTurnamentDetails(int id, TournamentDetails tournamentDetails)
         {
-            if (id != turnamentDetails.Id)
+            if (id != tournamentDetails.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(turnamentDetails).State = EntityState.Modified;
+            _unitOfWork.TournamentRepository.Update(tournamentDetails);
 
             try
             {
-                await _context.SaveChangesAsync();
+                await _unitOfWork.CompleteAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!TurnamentDetailsExists(id))
+                bool exists = await TournamentDetailsExists(id);
+                if (!exists)
                 {
                     return NotFound();
                 }
@@ -76,33 +79,33 @@ namespace Tournament.Api.Controllers
         // POST: api/TurnamentDetails
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<TurnamentDetails>> PostTurnamentDetails(TurnamentDetails turnamentDetails)
+        public async Task<ActionResult<TournamentDetails>> PostTurnamentDetails(TournamentDetails tournamentDetails)
         {
-            _context.TurnamentDetails.Add(turnamentDetails);
-            await _context.SaveChangesAsync();
+            _unitOfWork.TournamentRepository.Add(tournamentDetails);
+            await _unitOfWork.CompleteAsync();
 
-            return CreatedAtAction("GetTurnamentDetails", new { id = turnamentDetails.Id }, turnamentDetails);
+            return CreatedAtAction("GetTournamentDetails", new { id = tournamentDetails.Id }, tournamentDetails);
         }
 
         // DELETE: api/TurnamentDetails/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTurnamentDetails(int id)
         {
-            var turnamentDetails = await _context.TurnamentDetails.FindAsync(id);
-            if (turnamentDetails == null)
+            var tournamentDetails = await _unitOfWork.TournamentRepository.GetAsync(id);
+            if (tournamentDetails == null)
             {
                 return NotFound();
             }
 
-            _context.TurnamentDetails.Remove(turnamentDetails);
-            await _context.SaveChangesAsync();
+            _unitOfWork.TournamentRepository.Remove(tournamentDetails);
+            await _unitOfWork.CompleteAsync();
 
             return NoContent();
         }
 
-        private bool TurnamentDetailsExists(int id)
+        private async Task<bool> TournamentDetailsExists(int id)
         {
-            return _context.TurnamentDetails.Any(e => e.Id == id);
+            return await _unitOfWork.TournamentRepository.AnyAsync(id);
         }
     }
 }

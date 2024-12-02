@@ -15,9 +15,9 @@ namespace Tournament.Api.Extensions
                 var serviceProvider = scope.ServiceProvider;
                 var db = serviceProvider.GetRequiredService<TournamentApiContext>();
 
-               // await db.Database.MigrateAsync();
+               await db.Database.MigrateAsync();
 
-                if (await db.TurnamentDetails.AnyAsync()) return;
+                if (await db.TournamentDetails.AnyAsync()) return;
 
                 try
                 {
@@ -32,9 +32,9 @@ namespace Tournament.Api.Extensions
             }
         }
 
-        private static IEnumerable<TurnamentDetails> GenerateTurnaments(int nrOfTurnaments)
+        private static IEnumerable<TournamentDetails> GenerateTurnaments(int nrOfTurnaments)
         {
-            var faker = new Faker<TurnamentDetails>("sv").Rules((f, t) =>
+            var faker = new Faker<TournamentDetails>("sv").Rules((f, t) =>
             {
                 t.Title = $"{GameNames[f.Random.Int(0, GameNames.Length - 1)]} Tournament";
                 t.StartDate = f.Date.Between(DateTime.Now.AddMonths(-1), DateTime.Now.AddMonths(1));
