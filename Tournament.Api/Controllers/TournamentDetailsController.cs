@@ -60,16 +60,21 @@ namespace Tournament.Api.Controllers
             
             if (id != tournamentDto.Id)
             {
-                return BadRequest();
+                return BadRequest("Provided ID does not match the DTO ID.");
             }
-
-            var tournamentDetails = _mapper.Map<TournamentDetails>(tournamentDto);
-
-            _unitOfWork.TournamentRepository.Update(tournamentDetails);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
             try
             {
+                var tournamentDetails = _mapper.Map<TournamentDetails>(tournamentDto);
+                _unitOfWork.TournamentRepository.Update(tournamentDetails);
+                
                 await _unitOfWork.CompleteAsync();
+                
+                return Ok(tournamentDto);
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -80,11 +85,13 @@ namespace Tournament.Api.Controllers
                 }
                 else
                 {
-                    throw;
+                    return StatusCode(500, "A concurrency error occurred.");
                 }
             }
-
-            return NoContent();
+                catch (Exception ex) 
+                {
+                return StatusCode(500, "An error occurred while updating the tournament.");
+            }
         }
 
         // POST: api/TurnamentDetails
@@ -92,14 +99,26 @@ namespace Tournament.Api.Controllers
         [HttpPost]
         public async Task<ActionResult<TournamentDto>> PostTournamentDetails(TournamentDto tournamentDto)
         {
-            var tournamentDetails = _mapper.Map<TournamentDetails>(tournamentDto);
-            _unitOfWork.TournamentRepository.Add(tournamentDetails);
-            await _unitOfWork.CompleteAsync();
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
-            var createdDto = _mapper.Map<TournamentDto>(tournamentDetails);
+            try
+            {
+                var tournamentDetails = _mapper.Map<TournamentDetails>(tournamentDto);
+                _unitOfWork.TournamentRepository.Add(tournamentDetails);
+                await _unitOfWork.CompleteAsync();
+
+                var createdDto = _mapper.Map<TournamentDto>(tournamentDetails);
 
 
-            return CreatedAtAction(nameof(GetTournamentDetails), new { id = tournamentDto.Id }, createdDto);
+                return CreatedAtAction(nameof(GetTournamentDetails), new { id = tournamentDto.Id }, createdDto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while saving the tournament.");
+            }
         }
 
         // DELETE: api/TurnamentDetails/5
@@ -112,13 +131,21 @@ namespace Tournament.Api.Controllers
                 return NotFound();
             }
 
-            _unitOfWork.TournamentRepository.Remove(tournamentDetails);
-            await _unitOfWork.CompleteAsync();
+            try
+            {
+                _unitOfWork.TournamentRepository.Remove(tournamentDetails);
+                await _unitOfWork.CompleteAsync();
 
-            var deletedDto = _mapper.Map<TournamentDto>(tournamentDetails);
+                var deletedDto = _mapper.Map<TournamentDto>(tournamentDetails);
 
-            //Return the deleted Dto in case the client wants to see which tournament was deleted
-            return Ok(deletedDto); 
+                //Return the deleted Dto in case we want to see which tournament was deleted
+                return Ok(deletedDto); 
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while deleting the tournament.");
+            }
+
         }
 
         private async Task<bool> TournamentDetailsExists(int id)

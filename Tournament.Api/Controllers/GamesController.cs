@@ -62,13 +62,17 @@ namespace Tournament.Api.Controllers
             {
                 return BadRequest();
             }
-
-            var game = _mapper.Map<Game>(gameDto);
-            _unitOfWork.GameRepository.Update(game);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
             try
             {
+                var game = _mapper.Map<Game>(gameDto);
+                _unitOfWork.GameRepository.Update(game);
                 await _unitOfWork.CompleteAsync();
+                return Ok(gameDto);
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -79,11 +83,14 @@ namespace Tournament.Api.Controllers
                 }
                 else
                 {
-                    throw;
+                    return StatusCode(500, "A concurrency error occurred.");
                 }
             }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while updating the game.");
+            }
 
-            return NoContent();
         }
 
         // POST: api/Games
@@ -91,13 +98,24 @@ namespace Tournament.Api.Controllers
         [HttpPost]
         public async Task<ActionResult<Game>> PostGame(GameDto gameDto)
         {
-            var game = _mapper.Map<Game>(gameDto);
-            _unitOfWork.GameRepository.Add(game);
-            await _unitOfWork.CompleteAsync();
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            try
+            {
+                var game = _mapper.Map<Game>(gameDto);
+                _unitOfWork.GameRepository.Add(game);
+                await _unitOfWork.CompleteAsync();
 
-            var createdGameDto = _mapper.Map<GameDto>(game);
+                var createdGameDto = _mapper.Map<GameDto>(game);
 
-            return CreatedAtAction(nameof(GetGame), new { id = createdGameDto.Id }, createdGameDto);
+                return CreatedAtAction(nameof(GetGame), new { id = createdGameDto.Id }, createdGameDto);
+            }
+            catch (Exception ex) 
+            {
+                return StatusCode(500, "An error occurred while saving the game.");
+            }
         }
 
         // DELETE: api/Games/5
@@ -105,17 +123,25 @@ namespace Tournament.Api.Controllers
         public async Task<IActionResult> DeleteGame(int id)
         {
             var game = await _unitOfWork.GameRepository.GetAsync(id);
+
             if (game == null)
             {
                 return NotFound();
             }
 
-            _unitOfWork.GameRepository.Remove(game);
-            await _unitOfWork.CompleteAsync();
+            try
+            {
+                _unitOfWork.GameRepository.Remove(game);
+                await _unitOfWork.CompleteAsync();
 
-            var deletedGameDto = _mapper.Map<GameDto>(game);
+                var deletedGameDto = _mapper.Map<GameDto>(game);
 
-            return Ok(deletedGameDto);
+                return Ok(deletedGameDto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while deleting the game.");
+            }
         }
 
         private async Task<bool> GameExists(int id)
