@@ -10,8 +10,8 @@ namespace Tournament.Core.Dto
     public record TournamentDto
     {
         public int Id { get; set; }
-        [Required]
-        [MaxLength(60)]
+        [Required(ErrorMessage = "Title is required.")]
+        [StringLength(100, ErrorMessage = "Title cannot exceed 100 characters.")]
         public string Title { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate
