@@ -10,6 +10,8 @@ using Tournament.Core.Entities;
 using Tournament.Core.Repositories;
 using AutoMapper;
 using Tournament.Core.Dto;
+using Microsoft.AspNetCore.JsonPatch;
+using Humanizer;
 
 namespace Tournament.Api.Controllers
 {
@@ -146,6 +148,45 @@ namespace Tournament.Api.Controllers
                 return StatusCode(500, "An error occurred while deleting the tournament.");
             }
 
+        }
+
+        [HttpPatch("{tournamentId}")]
+        public async Task<ActionResult<TournamentDto>> PatchTournament(int tournamentId, JsonPatchDocument<TournamentDto> patchDocument)
+        {
+            if (patchDocument == null)
+            {
+                return BadRequest("Patch document cannot be null.");
+            }
+
+            // Retrieve the entity from the database
+            var tournamentDetails = await _unitOfWork.TournamentRepository.GetAsync(tournamentId);
+            if (tournamentDetails == null)
+            {
+                return NotFound();
+            }
+
+            var tournamentDto = _mapper.Map<TournamentDto>(tournamentDetails);
+
+            // Apply the patch
+            patchDocument.ApplyTo(tournamentDto, ModelState);
+            TryValidateModel(tournamentDto);
+
+            // Validate the patched model
+            if (!ModelState.IsValid) return UnprocessableEntity(ModelState);
+
+            try
+            {
+                var updatedTournamentDetails = _mapper.Map<TournamentDetails>(tournamentDto);
+
+                _unitOfWork.TournamentRepository.Update(updatedTournamentDetails);
+                await _unitOfWork.CompleteAsync();
+
+                return Ok(tournamentDto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while applying the patch.");
+            }
         }
 
         private async Task<bool> TournamentDetailsExists(int id)

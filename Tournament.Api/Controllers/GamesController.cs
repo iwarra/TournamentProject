@@ -10,6 +10,8 @@ using Tournament.Core.Entities;
 using AutoMapper;
 using Tournament.Core.Repositories;
 using Tournament.Core.Dto;
+using Microsoft.AspNetCore.JsonPatch;
+using Humanizer;
 
 namespace Tournament.Api.Controllers
 {
@@ -43,10 +45,7 @@ namespace Tournament.Api.Controllers
         {
             var game = await _unitOfWork.GameRepository.GetAsync(id);
 
-            if (game == null)
-            {
-                return NotFound();
-            }
+            if (game == null) return NotFound();
 
             var gameDto = _mapper.Map<GameDto>(game);
 
@@ -124,10 +123,7 @@ namespace Tournament.Api.Controllers
         {
             var game = await _unitOfWork.GameRepository.GetAsync(id);
 
-            if (game == null)
-            {
-                return NotFound();
-            }
+            if (game == null) return NotFound();
 
             try
             {
@@ -143,6 +139,39 @@ namespace Tournament.Api.Controllers
                 return StatusCode(500, "An error occurred while deleting the game.");
             }
         }
+
+        [HttpPatch("{gameId}")]
+        public async Task<ActionResult<GameDto>> PatchGame(int gameId, JsonPatchDocument<GameDto> patchDocument)
+        {
+            if (patchDocument == null) return BadRequest("Patch document cannot be null.");
+
+            var game = await _unitOfWork.GameRepository.GetAsync(gameId);
+            if (game == null) return NotFound();
+
+            var gameDto = _mapper.Map<GameDto>(game);
+
+            // Apply the patch
+            patchDocument.ApplyTo(gameDto, ModelState);
+            TryValidateModel(gameDto);
+
+            if (!ModelState.IsValid) return UnprocessableEntity(ModelState);
+
+            try
+            {
+                var updatedGame = _mapper.Map<Game>(gameDto);
+
+                _unitOfWork.GameRepository.Update(updatedGame);
+                await _unitOfWork.CompleteAsync();
+
+                return Ok(gameDto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while applying the patch.");
+            }
+        }
+
+
 
         private async Task<bool> GameExists(int id)
         {
