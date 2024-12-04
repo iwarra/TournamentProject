@@ -21,36 +21,63 @@ namespace Tournament.Api.Controllers
     {
         private readonly IUoW _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly TournamentApiContext _context;
 
-        public GamesController(IUoW unitOfWork, IMapper mapper)
+        public GamesController(IUoW unitOfWork, IMapper mapper, TournamentApiContext context)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _context = context;
         }
 
-        // GET: api/Games
+        //GET: api/Games
+       //[HttpGet]
+       // public async Task<ActionResult<IEnumerable<Game>>> GetGame()
+       // {
+       //     var games = await _unitOfWork.GameRepository.GetAllAsync();
+
+       //     var gameDtos = _mapper.Map<IEnumerable<GameDto>>(games);
+
+       //     return Ok(gameDtos);
+       // }
+
+        // GET: api/Games?title={title}
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Game>>> GetGame()
+        public async Task<ActionResult<IEnumerable<GameDto>>> GetGame([FromQuery] string title)
         {
+            if (string.IsNullOrEmpty(title))
+            {
+                return BadRequest("Title must be provided.");
+            }
+
             var games = await _unitOfWork.GameRepository.GetAllAsync();
 
-            var gameDtos = _mapper.Map<IEnumerable<GameDto>>(games);
+            var filteredGames = games.Where(g => g.Title.Equals(title, StringComparison.OrdinalIgnoreCase));
+
+            if (!filteredGames.Any())
+            {
+                return NotFound("No games found with the specified title.");
+            }
+
+            // Map filtered games to DTOs
+            var gameDtos = _mapper.Map<IEnumerable<GameDto>>(filteredGames);
 
             return Ok(gameDtos);
         }
 
-        // GET: api/Games/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Game>> GetGame(int id)
-        {
-            var game = await _unitOfWork.GameRepository.GetAsync(id);
 
-            if (game == null) return NotFound();
+        //// GET: api/Games/5
+        //[HttpGet("{id}")]
+        //public async Task<ActionResult<Game>> GetGame(int id)
+        //{
+        //    var game = await _unitOfWork.GameRepository.GetAsync(id);
 
-            var gameDto = _mapper.Map<GameDto>(game);
+        //    if (game == null) return NotFound();
 
-            return Ok(gameDto);
-        }
+        //    var gameDto = _mapper.Map<GameDto>(game);
+
+        //    return Ok(gameDto);
+        //}
 
         // PUT: api/Games/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
