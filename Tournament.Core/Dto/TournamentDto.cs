@@ -21,5 +21,6 @@ namespace Tournament.Core.Dto
                 return StartDate.AddMonths(3);
             }
         }
+        public List<GameDto>? Games { get; set; }
     }
 }

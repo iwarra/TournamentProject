@@ -21,19 +21,54 @@ namespace Tournament.Api.Controllers
     {
         private readonly IUoW _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly TournamentApiContext _context;
 
-        public TournamentDetailsController(IUoW unitOfWork, IMapper mapper)
+        public TournamentDetailsController(IUoW unitOfWork, IMapper mapper, TournamentApiContext context)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _context = context;
         }
 
-        // GET: api/TurnamentDetails
+        //// GET: api/TurnamentDetails
+        //[HttpGet]
+        //public async Task<ActionResult<IEnumerable<TournamentDto>>> GetTournamentDetails()
+        //{
+        //    var detailsDto = await _unitOfWork.TournamentRepository.GetAllAsync();
+        //    return Ok(detailsDto);
+        //}
+
+        //Version with optional game inclusion with context
+        // GET: api/TurnamentDetails?includeGames=false or true
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TournamentDto>>> GetTournamentDetails()
+        public async Task<ActionResult<IEnumerable<TournamentDto>>> GetTournamentDetails([FromQuery] bool includeGames = false)
         {
-            var detailsDto = await _unitOfWork.TournamentRepository.GetAllAsync();
-            return Ok(detailsDto);
+            var query = _context.TournamentDetails.AsQueryable();
+
+            if (includeGames)
+            {
+                query = query.Include(t => t.Games);
+            }
+
+            var tournaments = await query.ToListAsync();
+
+            // Map entities to DTOs
+            var tournamentDtos = tournaments.Select(t => new TournamentDto
+            {
+                Id = t.Id,
+                Title = t.Title,
+                StartDate = t.StartDate,
+                Games = includeGames
+                   ? t.Games.Select(g => new GameDto
+                   {
+                       Id = g.Id,
+                       Title = g.Title,
+                       StartDate = g.Time,
+                   }).ToList()
+                   : null
+            });
+
+            return Ok(tournamentDtos);
         }
 
         // GET: api/TurnamentDetails/5
@@ -53,6 +88,7 @@ namespace Tournament.Api.Controllers
 
             //return turnamentDetails;
         }
+
 
         // PUT: api/TurnamentDetails/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
