@@ -15,7 +15,8 @@ namespace Tournament.Data.Data
         {
             //CreateMap<TournamentDetails, TournamentDto>(); - Problem with END DATE
             CreateMap<TournamentDetails, TournamentDto>()
-            .ForMember(dest => dest.EndDate, opt => opt.MapFrom(src => src.StartDate.AddMonths(3)));
+            .ForMember(dest => dest.EndDate, opt => opt.MapFrom(src => src.StartDate.AddMonths(3)))
+            .ReverseMap();
             CreateMap<Game, GameDto>();
         }
     }

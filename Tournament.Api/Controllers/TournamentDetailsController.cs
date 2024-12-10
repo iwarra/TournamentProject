@@ -21,13 +21,11 @@ namespace Tournament.Api.Controllers
     {
         private readonly IUoW _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly TournamentApiContext _context;
 
-        public TournamentDetailsController(IUoW unitOfWork, IMapper mapper, TournamentApiContext context)
+        public TournamentDetailsController(IUoW unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-            _context = context;
         }
 
         //// GET: api/TurnamentDetails
@@ -41,37 +39,15 @@ namespace Tournament.Api.Controllers
         //Version with optional game inclusion with context
         // GET: api/TurnamentDetails?includeGames=false or true
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TournamentDto>>> GetTournamentDetails([FromQuery] bool includeGames = false)
+        public async Task<ActionResult<IEnumerable<TournamentDto>>> GetTournamentDetails(bool includeGames)
         {
-            var query = _context.TournamentDetails.AsQueryable();
+            var tournamentDtos = includeGames ? _mapper.Map<IEnumerable<TournamentDto>>(await _unitOfWork.TournamentRepository.GetAllAsync(true)) :
+                                                _mapper.Map<IEnumerable<TournamentDto>>(await _unitOfWork.TournamentRepository.GetAllAsync());
 
-            if (includeGames)
-            {
-                query = query.Include(t => t.Games);
-            }
-
-            var tournaments = await query.ToListAsync();
-
-            // Map entities to DTOs
-            var tournamentDtos = tournaments.Select(t => new TournamentDto
-            {
-                Id = t.Id,
-                Title = t.Title,
-                StartDate = t.StartDate,
-                Games = includeGames
-                   ? t.Games.Select(g => new GameDto
-                   {
-                       Id = g.Id,
-                       Title = g.Title,
-                       StartDate = g.Time,
-                   }).ToList()
-                   : null
-            });
-
-            return Ok(tournamentDtos);
+                return Ok(tournamentDtos);
         }
 
-        // GET: api/TurnamentDetails/5
+
         [HttpGet("{id}")]
         public async Task<ActionResult<TournamentDto>> GetTournamentDetails(int id)
         {
@@ -186,7 +162,7 @@ namespace Tournament.Api.Controllers
 
         }
 
-        [HttpPatch("{tournamentId}")]
+        [HttpPatch("{tournamentId:int}")]
         public async Task<ActionResult<TournamentDto>> PatchTournament(int tournamentId, JsonPatchDocument<TournamentDto> patchDocument)
         {
             if (patchDocument == null)
@@ -212,7 +188,7 @@ namespace Tournament.Api.Controllers
 
             try
             {
-                var updatedTournamentDetails = _mapper.Map<TournamentDetails>(tournamentDto);
+                var updatedTournamentDetails = _mapper.Map(tournamentDto, tournamentDetails);
 
                 _unitOfWork.TournamentRepository.Update(updatedTournamentDetails);
                 await _unitOfWork.CompleteAsync();

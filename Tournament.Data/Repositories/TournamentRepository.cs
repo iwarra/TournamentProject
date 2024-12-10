@@ -7,10 +7,11 @@ using System.Threading.Tasks;
 using Tournament.Core.Entities;
 using Tournament.Core.Repositories;
 using Tournament.Data.Data;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace Tournament.Data.Repositories
 {
-    public class TournamentRepository : ITournamentRepository
+    public class TournamentRepository :  ITournamentRepository
     {
         private readonly TournamentApiContext _context;
 
@@ -18,9 +19,12 @@ namespace Tournament.Data.Repositories
         {
             _context = context;
         }
-        public async Task<IEnumerable<TournamentDetails>> GetAllAsync()
+
+        public async Task<IEnumerable<TournamentDetails>> GetAllAsync(bool includeGames)
         {
-            return await _context.TournamentDetails.ToListAsync();
+            return includeGames ? await _context.TournamentDetails.Include(t => t.Games).ToListAsync() :
+                                  await _context.TournamentDetails.ToListAsync();
+
         }
 
         public async Task<TournamentDetails> GetAsync(int id)
