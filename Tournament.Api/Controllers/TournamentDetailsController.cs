@@ -1,17 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Tournament.Data.Data;
 using Tournament.Core.Entities;
 using Tournament.Core.Repositories;
 using AutoMapper;
 using Tournament.Core.Dto;
 using Microsoft.AspNetCore.JsonPatch;
-using Humanizer;
+
 
 namespace Tournament.Api.Controllers
 {
@@ -36,7 +30,8 @@ namespace Tournament.Api.Controllers
         //    return Ok(detailsDto);
         //}
 
-        //Version with optional game inclusion with context
+
+        //Version with optional game inclusion 
         // GET: api/TurnamentDetails?includeGames=false or true
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TournamentDto>>> GetTournamentDetails(bool includeGames)
@@ -61,8 +56,6 @@ namespace Tournament.Api.Controllers
             var tournamentDto = _mapper.Map<TournamentDto>(tournamentDetails);
 
             return Ok(tournamentDto);
-
-            //return turnamentDetails;
         }
 
 
@@ -71,24 +64,24 @@ namespace Tournament.Api.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutTournamentDetails(int id, TournamentDto tournamentDto)
         {
-            
-            if (id != tournamentDto.Id)
-            {
-                return BadRequest("Provided ID does not match the DTO ID.");
-            }
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
+            var existingTournament = await _unitOfWork.TournamentRepository.GetAsync(id);
+            if (existingTournament == null)
+            {
+                return NotFound();
+            }
 
             try
             {
-                var tournamentDetails = _mapper.Map<TournamentDetails>(tournamentDto);
-                _unitOfWork.TournamentRepository.Update(tournamentDetails);
+                _mapper.Map(tournamentDto, existingTournament);
+                _unitOfWork.TournamentRepository.Update(existingTournament);
                 
                 await _unitOfWork.CompleteAsync();
                 
-                return Ok(tournamentDto);
+                return Ok(_mapper.Map<TournamentDto>(existingTournament));
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -102,10 +95,10 @@ namespace Tournament.Api.Controllers
                     return StatusCode(500, "A concurrency error occurred.");
                 }
             }
-                catch (Exception ex) 
+                catch (Exception) 
                 {
-                return StatusCode(500, "An error occurred while updating the tournament.");
-            }
+                    return StatusCode(500, "An error occurred while updating the tournament.");
+                }
         }
 
         // POST: api/TurnamentDetails
@@ -127,9 +120,9 @@ namespace Tournament.Api.Controllers
                 var createdDto = _mapper.Map<TournamentDto>(tournamentDetails);
 
 
-                return CreatedAtAction(nameof(GetTournamentDetails), new { id = tournamentDto.Id }, createdDto);
+                return CreatedAtAction(nameof(GetTournamentDetails), new { id = tournamentDetails.Id }, createdDto);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, "An error occurred while saving the tournament.");
             }
@@ -155,7 +148,7 @@ namespace Tournament.Api.Controllers
                 //Return the deleted Dto in case we want to see which tournament was deleted
                 return Ok(deletedDto); 
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, "An error occurred while deleting the tournament.");
             }
@@ -170,7 +163,6 @@ namespace Tournament.Api.Controllers
                 return BadRequest("Patch document cannot be null.");
             }
 
-            // Retrieve the entity from the database
             var tournamentDetails = await _unitOfWork.TournamentRepository.GetAsync(tournamentId);
             if (tournamentDetails == null)
             {
@@ -195,7 +187,7 @@ namespace Tournament.Api.Controllers
 
                 return Ok(tournamentDto);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, "An error occurred while applying the patch.");
             }

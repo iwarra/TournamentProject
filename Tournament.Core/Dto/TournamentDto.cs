@@ -9,11 +9,8 @@ namespace Tournament.Core.Dto
 {
     public record TournamentDto
     {
-        public int Id { get; set; }
-        [Required(ErrorMessage = "Title is required.")]
-        [StringLength(100, ErrorMessage = "Title cannot exceed 100 characters.")]
-        public string Title { get; set; }
-        public DateTime StartDate { get; set; }
+        public string Title { get; init; }
+        public DateTime StartDate { get; init; }
         public DateTime EndDate
         {
             get
@@ -21,6 +18,6 @@ namespace Tournament.Core.Dto
                 return StartDate.AddMonths(3);
             }
         }
-        public List<GameDto>? Games { get; set; }
+        public List<GameDto>? Games { get; init; }
     }
 }
