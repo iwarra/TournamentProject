@@ -11,7 +11,6 @@ using AutoMapper;
 using Tournament.Core.Repositories;
 using Tournament.Core.Dto;
 using Microsoft.AspNetCore.JsonPatch;
-using Humanizer;
 
 namespace Tournament.Api.Controllers
 {
@@ -21,13 +20,11 @@ namespace Tournament.Api.Controllers
     {
         private readonly IUoW _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly TournamentApiContext _context;
 
-        public GamesController(IUoW unitOfWork, IMapper mapper, TournamentApiContext context)
+        public GamesController(IUoW unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-            _context = context;
         }
 
         //GET: api/Games
@@ -43,7 +40,7 @@ namespace Tournament.Api.Controllers
 
         // GET: api/Games?title={title}
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<GameDto>>> GetGame([FromQuery] string title)
+        public async Task<ActionResult<IEnumerable<GameDto>>> GetGame(string title)
         {
             if (string.IsNullOrEmpty(title))
             {
@@ -66,9 +63,9 @@ namespace Tournament.Api.Controllers
         }
 
 
-        //// GET: api/Games/5
+        // GET: api/Games/5
         //[HttpGet("{id}")]
-        //public async Task<ActionResult<Game>> GetGame(int id)
+        //public async Task<ActionResult<Game>> GetGameById(int id)
         //{
         //    var game = await _unitOfWork.GameRepository.GetAsync(id);
 
@@ -185,7 +182,7 @@ namespace Tournament.Api.Controllers
 
             try
             {
-                var updatedGame = _mapper.Map<Game>(gameDto);
+                var updatedGame = _mapper.Map(gameDto, game);
 
                 _unitOfWork.GameRepository.Update(updatedGame);
                 await _unitOfWork.CompleteAsync();

@@ -17,7 +17,7 @@ namespace Tournament.Data.Data
             CreateMap<TournamentDetails, TournamentDto>()
             .ForMember(dest => dest.EndDate, opt => opt.MapFrom(src => src.StartDate.AddMonths(3)))
             .ReverseMap();
-            CreateMap<Game, GameDto>();
+            CreateMap<Game, GameDto>().ReverseMap();
         }
     }
 }
