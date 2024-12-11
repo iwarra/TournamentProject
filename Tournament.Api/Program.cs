@@ -4,6 +4,7 @@ using Tournament.Api.Extensions;
 using Tournament.Core.Repositories;
 using Tournament.Data.Data;
 using Tournament.Data.Repositories;
+using AutoMapper;
 
 namespace Tournament.Api
 {
@@ -22,8 +23,31 @@ namespace Tournament.Api
                 .AddXmlDataContractSerializerFormatters();
 
             builder.Services.AddScoped<IUoW, UoW>();
-            builder.Services.AddAutoMapper(typeof(TournamentMappings));
 
+            //Depricated package
+            // builder.Services.AddAutoMapper(typeof(TournamentMappings));
+
+            var mapperConfig = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile<TournamentMappings>();
+            });
+
+            // Register the configuration
+            builder.Services.AddSingleton(mapperConfig);
+
+            // Register IMapper using the configuration
+            builder.Services.AddSingleton<IMapper>(sp => sp.GetRequiredService<MapperConfiguration>().CreateMapper());
+
+
+            //Cors
+            builder.Services.AddCors(builder =>
+            {
+                builder.AddPolicy("AllowAll", p =>
+                    p.AllowAnyOrigin()
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    );
+            });
 
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -42,6 +66,8 @@ namespace Tournament.Api
             }
 
             app.UseHttpsRedirection();
+
+            app.UseCors("AllowAll");
 
             app.UseAuthorization();
 

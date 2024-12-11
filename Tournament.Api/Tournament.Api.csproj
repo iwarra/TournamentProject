@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
+    <PackageReference Include="AutoMapper" Version="13.0.1" />
     <PackageReference Include="Bogus" Version="35.6.1" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.11" />
@@ -22,6 +22,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Tournament.Core\Tournament.Core.csproj" />
     <ProjectReference Include="..\Tournament.Data\Tournament.Data.csproj" />
+    <ProjectReference Include="..\Tournament.Presentation\Tournament.Presentation.csproj" />
+    <ProjectReference Include="..\Tournament.Services\Tournament.Services.csproj" />
   </ItemGroup>
 
 </Project>

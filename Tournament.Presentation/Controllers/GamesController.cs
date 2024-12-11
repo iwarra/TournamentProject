@@ -1,10 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Tournament.Core.Entities;
 using AutoMapper;
 using Tournament.Core.Repositories;
 using Tournament.Core.Dto;
 using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 
 
 namespace Tournament.Api.Controllers
