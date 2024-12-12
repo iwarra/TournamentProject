@@ -6,6 +6,7 @@ using Tournament.Core.Dto;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
+using Service.Contracts;
 
 
 namespace Tournament.Api.Controllers
@@ -14,15 +15,17 @@ namespace Tournament.Api.Controllers
     [ApiController]
     public class GamesController : ControllerBase
     {
+        private readonly IServiceManager serviceManager;
         private readonly IUoW _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ILogger<GamesController> _logger;
 
-        public GamesController(IUoW unitOfWork, IMapper mapper, ILogger<GamesController> logger)
+        public GamesController(IUoW unitOfWork, IMapper mapper, ILogger<GamesController> logger, IServiceManager serviceManager)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _logger = logger;
+            this.serviceManager = serviceManager;
         }
 
         //GET: api/Games

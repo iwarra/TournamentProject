@@ -5,6 +5,7 @@ using Tournament.Core.Repositories;
 using AutoMapper;
 using Tournament.Core.Dto;
 using Microsoft.AspNetCore.JsonPatch;
+using Service.Contracts;
 
 
 namespace Tournament.Api.Controllers
@@ -13,13 +14,15 @@ namespace Tournament.Api.Controllers
     [ApiController]
     public class TournamentDetailsController : ControllerBase
     {
+        private readonly IServiceManager serviceManager;
         private readonly IUoW _unitOfWork;
         private readonly IMapper _mapper;
 
-        public TournamentDetailsController(IUoW unitOfWork, IMapper mapper)
+        public TournamentDetailsController(IUoW unitOfWork, IMapper mapper, IServiceManager serviceManager)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            this.serviceManager = serviceManager;
         }
 
         //// GET: api/TurnamentDetails
@@ -36,26 +39,24 @@ namespace Tournament.Api.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TournamentDto>>> GetTournamentDetails(bool includeGames)
         {
-            var tournamentDtos = includeGames ? _mapper.Map<IEnumerable<TournamentDto>>(await _unitOfWork.TournamentRepository.GetAllAsync(true)) :
-                                                _mapper.Map<IEnumerable<TournamentDto>>(await _unitOfWork.TournamentRepository.GetAllAsync());
-
-                return Ok(tournamentDtos);
+            var tournamentDtos = await serviceManager.TournamentService.GetTournamentsAsync(includeGames);
+            return Ok(tournamentDtos);
         }
 
 
         [HttpGet("{id}")]
         public async Task<ActionResult<TournamentDto>> GetTournamentDetails(int id)
         {
-            var tournamentDetails = await _unitOfWork.TournamentRepository.GetAsync(id);
+            var tournamentDetails = await serviceManager.TournamentService.GetTournamentById(id);
 
             if (tournamentDetails == null)
             {
                 return NotFound();
             }
 
-            var tournamentDto = _mapper.Map<TournamentDto>(tournamentDetails);
+            //var tournamentDto = _mapper.Map<TournamentDto>(tournamentDetails);
 
-            return Ok(tournamentDto);
+            return Ok(tournamentDetails);
         }
 
 
