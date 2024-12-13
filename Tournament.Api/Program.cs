@@ -5,6 +5,8 @@ using Tournament.Core.Repositories;
 using Tournament.Data.Data;
 using Tournament.Data.Repositories;
 using AutoMapper;
+using Service.Contracts;
+using Tournament.Services;
 
 namespace Tournament.Api
 {
@@ -23,6 +25,7 @@ namespace Tournament.Api
                 .AddXmlDataContractSerializerFormatters();
 
             builder.Services.AddScoped<IUoW, UoW>();
+            
 
             //Depricated package
             // builder.Services.AddAutoMapper(typeof(TournamentMappings));
@@ -38,6 +41,7 @@ namespace Tournament.Api
             // Register IMapper using the configuration
             builder.Services.AddSingleton<IMapper>(sp => sp.GetRequiredService<MapperConfiguration>().CreateMapper());
 
+            builder.Services.ConfigureServiceLayerServices();
 
             //Cors
             builder.Services.AddCors(builder =>
