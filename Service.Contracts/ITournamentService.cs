@@ -12,9 +12,8 @@ namespace Service.Contracts
     {
         Task<IEnumerable<TournamentDto>> GetTournamentsAsync(bool includeGames = false);
         Task<TournamentDto> GetTournamentById(int id);
-        void CreateTournament(TournamentDto tournamentDto);
-        void UpdateTournament(int id, TournamentDto tournamentDto);
-        void DeleteTournament(int id);
-        
+        Task<(int id, TournamentDto TournamentDto)> CreateTournamentAsync(TournamentDto tournamentDto);
+        Task<TournamentDto> UpdateTournamentAsync(int id, TournamentDto tournamentDto);
+        Task<TournamentDto> DeleteTournamentAsync(int id); 
     }
 }

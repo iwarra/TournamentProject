@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Tournament.Core.Dto;
+using Tournament.Core.Entities;
 using Tournament.Core.Repositories;
 
 namespace Tournament.Services
@@ -39,19 +40,42 @@ namespace Tournament.Services
             return includeGames ? _mapper.Map<IEnumerable<TournamentDto>>(await _uow.TournamentRepository.GetAllAsync(true)) : _mapper.Map<IEnumerable<TournamentDto>>(await _uow.TournamentRepository.GetAllAsync());
         }
 
-        public void UpdateTournament(int id, TournamentDto tournamentDto)
+        public async Task<TournamentDto> UpdateTournamentAsync(int id, TournamentDto tournamentDto)
         {
-            throw new NotImplementedException();
+            var existingTournament = await _uow.TournamentRepository.GetAsync(id);
+            if (existingTournament == null)
+            {
+                throw new KeyNotFoundException($"Tournament with ID {id} was not found.");
+            }
+
+            _mapper.Map(tournamentDto, existingTournament);
+            _uow.TournamentRepository.Update(existingTournament);
+            await _uow.CompleteAsync();
+
+            return tournamentDto;
         }
 
-        public void CreateTournament(TournamentDto tournamentDto)
+        public async Task<(int id,TournamentDto TournamentDto)> CreateTournamentAsync(TournamentDto tournamentDto)
         {
-            throw new NotImplementedException();
+            var tournament = _mapper.Map<TournamentDetails>(tournamentDto);
+            _uow.TournamentRepository.Add(tournament);
+            await _uow.CompleteAsync();
+
+            return (tournament.Id, tournamentDto);
         }
 
-        public void DeleteTournament(int id)
+        public async Task<TournamentDto> DeleteTournamentAsync(int id)
         {
-            throw new NotImplementedException();
+            var tournament = await _uow.TournamentRepository.GetAsync(id);
+            if (tournament == null)
+            {
+                throw new KeyNotFoundException($"Tournament with ID {id} was not found.");
+            }
+            _uow.TournamentRepository.Remove(tournament);
+            await _uow.CompleteAsync();
+            var tournamentDto = _mapper.Map<TournamentDto>(tournament);
+
+            return tournamentDto;
         }
     }
 }
