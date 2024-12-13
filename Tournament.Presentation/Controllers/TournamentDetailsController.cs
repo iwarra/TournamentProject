@@ -21,21 +21,16 @@ namespace Tournament.Api.Controllers
             _serviceManager = serviceManager;
         }
 
-        //// GET: api/TurnamentDetails
-        //[HttpGet]
-        //public async Task<ActionResult<IEnumerable<TournamentDto>>> GetTournamentDetails()
-        //{
-        //    var detailsDto = await _unitOfWork.TournamentRepository.GetAllAsync();
-        //    return Ok(detailsDto);
-        //}
-
 
         //Version with optional game inclusion 
         // GET: api/TurnamentDetails?includeGames=false or true
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TournamentDto>>> GetTournamentDetails(bool includeGames)
+        public async Task<ActionResult<IEnumerable<TournamentDto>>> GetTournamentDetails(bool includeGames, int pageSize = 20)
         {
-            var tournamentDtos = await _serviceManager.TournamentService.GetTournamentsAsync(includeGames);
+            pageSize = Math.Min(pageSize, 100);
+
+            var tournamentDtos = await _serviceManager.TournamentService.GetTournamentsAsync(includeGames, pageSize);
+
             return Ok(tournamentDtos);
         }
 

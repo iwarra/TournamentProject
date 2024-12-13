@@ -10,7 +10,7 @@ namespace Service.Contracts
 {
     public interface ITournamentService
     {
-        Task<IEnumerable<TournamentDto>> GetTournamentsAsync(bool includeGames = false);
+        Task<IEnumerable<TournamentDto>> GetTournamentsAsync(bool includeGames = false, int pageSize = 20);
         Task<TournamentDto> GetTournamentById(int id);
         Task<(int id, TournamentDto TournamentDto)> CreateTournamentAsync(TournamentDto tournamentDto);
         Task<TournamentDto> UpdateTournamentAsync(int id, TournamentDto tournamentDto);
