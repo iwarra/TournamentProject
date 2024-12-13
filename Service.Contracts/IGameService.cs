@@ -12,8 +12,8 @@ namespace Service.Contracts
     {
         Task<IEnumerable<GameDto>> GetGamesAsync();
         Task<GameDto> GetGameById(int id);
-        void CreateGame(GameDto gameDto);
-        void UpdateGame(int id, GameDto gameDto);
-        void DeleteGame(int id);
+        Task<(int id, GameDto GameDto)> CreateGameAsync(GameDto gameDto);
+        Task<GameDto> UpdateGameAsync(int id, GameDto gameDto);
+        Task<GameDto> DeleteGameAsync(int id);
     }
 }
