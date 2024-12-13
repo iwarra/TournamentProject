@@ -9,8 +9,19 @@ namespace Tournament.Services
 {
     public class ServiceManager : IServiceManager
     {
-        public ITournamentService TournamentService;
+      
+        private readonly Lazy<ITournamentService> tournamentService;
+        private readonly Lazy<IGameService> gameService;
+  
 
-        public IGameService GameService;
+        public ITournamentService TournamentService => tournamentService.Value;
+        public IGameService GameService => gameService.Value;
+
+        public ServiceManager(Lazy<ITournamentService> tournamentService, Lazy<IGameService> gameService)
+        {
+            this.tournamentService = tournamentService;
+            this.gameService = gameService;
+        }
+        
     }
 }
