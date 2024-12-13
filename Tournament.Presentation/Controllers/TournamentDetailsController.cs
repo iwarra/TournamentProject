@@ -61,10 +61,7 @@ namespace Tournament.Api.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutTournamentDetails(int id, TournamentDto tournamentDto)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
             try
             {
@@ -91,10 +88,7 @@ namespace Tournament.Api.Controllers
         [HttpPost]
         public async Task<ActionResult<TournamentDto>> PostTournamentDetails(TournamentDto tournamentDto)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
             try
             {
@@ -144,16 +138,11 @@ namespace Tournament.Api.Controllers
                 var updatedTournament = await _serviceManager.TournamentService.UpdateTournamentAsync(tournamentId, tournament);
                 return Ok(updatedTournament);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.Error.WriteLine($"Error: {ex.Message}");
                 return StatusCode(500, "An error occurred while applying the patch.");
             }
         }
 
-        //private async Task<bool> TournamentDetailsExists(int id)
-        //{
-        //    return await _unitOfWork.TournamentRepository.AnyAsync(id);
-        //}
     }
 }
