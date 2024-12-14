@@ -25,11 +25,13 @@ namespace Tournament.Api.Controllers
 
         // GET: api/Games?title={title}
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<GameDto>>> GetGame(string title)
+        public async Task<ActionResult<IEnumerable<GameDto>>> GetGame(string title, int pageSize = 20)
         {
             if (string.IsNullOrEmpty(title)) return BadRequest("Title must be provided.");
 
-            var games = await _serviceManager.GameService.GetGamesAsync();
+            pageSize = Math.Min(pageSize, 100);
+
+            var games = await _serviceManager.GameService.GetGamesAsync(pageSize);
             var filteredGames = games.Where(g => g.Title.Equals(title, StringComparison.OrdinalIgnoreCase));
 
             if (!filteredGames.Any()) return NotFound("No games found with the specified title.");

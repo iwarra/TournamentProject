@@ -34,9 +34,14 @@ namespace Tournament.Services
             return null;
         }
 
-        public async Task<IEnumerable<GameDto>> GetGamesAsync()
+        public Task<IEnumerable<GameDto>> GetGamesAsync()
         {
-            return _mapper.Map<IEnumerable<GameDto>>(await _uow.GameRepository.GetAllAsync());
+            throw new NotImplementedException();
+        }
+
+        public async Task<IEnumerable<GameDto>> GetGamesAsync(int pageSize)
+        {
+            return _mapper.Map<IEnumerable<GameDto>>(await _uow.GameRepository.GetAllAsync()).Take(pageSize);
         }
 
 
@@ -78,6 +83,5 @@ namespace Tournament.Services
 
             return gameDto;
         }
-
     }
 }
