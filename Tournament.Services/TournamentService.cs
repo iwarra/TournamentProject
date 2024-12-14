@@ -35,9 +35,15 @@ namespace Tournament.Services
             return null;
         }
 
-        public async Task<IEnumerable<TournamentDto>> GetTournamentsAsync(bool includeGames = false, int pageSize = 20)
+        public async Task<(IEnumerable<TournamentDto> Items, int TotalItems)> GetTournamentsAsync(bool includeGames = false, int pageSize = 20, int currentPage = 1)
         {
-            return includeGames ? _mapper.Map<IEnumerable<TournamentDto>>(await _uow.TournamentRepository.GetAllAsync(true)).Take(pageSize) : _mapper.Map<IEnumerable<TournamentDto>>(await _uow.TournamentRepository.GetAllAsync()).Take(pageSize);
+            //return includeGames ? _mapper.Map<IEnumerable<TournamentDto>>(await _uow.TournamentRepository.GetAllAsync(true)).Take(pageSize) : _mapper.Map<IEnumerable<TournamentDto>>(await _uow.TournamentRepository.GetAllAsync()).Take(pageSize);
+
+            var (items, totalItems) = await _uow.TournamentRepository.GetAllAsync(includeGames, pageSize, currentPage);
+
+            var tournamentDtos = _mapper.Map<IEnumerable<TournamentDto>>(items);
+
+            return (tournamentDtos, totalItems);
         }
 
         public async Task<TournamentDto> UpdateTournamentAsync(int id, TournamentDto tournamentDto)

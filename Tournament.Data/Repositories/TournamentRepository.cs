@@ -20,10 +20,24 @@ namespace Tournament.Data.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<TournamentDetails>> GetAllAsync(bool includeGames)
+        public async Task<(IEnumerable<TournamentDetails> Items, int TotalItems)> GetAllAsync(bool includeGames, int pageSize, int currentPage)
         {
-            return includeGames ? await _context.TournamentDetails.Include(t => t.Games).ToListAsync() :
-                                  await _context.TournamentDetails.ToListAsync();
+            //return includeGames ? await _context.TournamentDetails.Include(t => t.Games).ToListAsync() : await _context.TournamentDetails.ToListAsync();
+            var query = _context.TournamentDetails.AsQueryable();
+
+            if (includeGames)
+            {
+                query = query.Include(t => t.Games);
+            }
+
+            var totalItems = await query.CountAsync(); 
+
+            var items = await query
+                .Skip((currentPage - 1) * pageSize)
+                .Take(pageSize)                   
+                .ToListAsync();
+
+            return (items, totalItems);
 
         }
 

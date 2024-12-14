@@ -9,7 +9,7 @@ namespace Tournament.Core.Repositories
 {
     public interface ITournamentRepository
     {
-        Task<IEnumerable<TournamentDetails>> GetAllAsync(bool includeGames = false);
+        Task<(IEnumerable<TournamentDetails> Items, int TotalItems)> GetAllAsync(bool includeGames = false, int pageSize = 20, int currentPage = 1);
         Task<TournamentDetails> GetAsync(int id);
         Task<bool> AnyAsync(int id);
         void Add(TournamentDetails tournament);

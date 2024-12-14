@@ -25,13 +25,28 @@ namespace Tournament.Api.Controllers
         //Version with optional game inclusion 
         // GET: api/TurnamentDetails?includeGames=false or true
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TournamentDto>>> GetTournamentDetails(bool includeGames, int pageSize = 20)
+        public async Task<ActionResult<IEnumerable<TournamentDto>>> GetTournamentDetails(bool includeGames, int pageSize = 20, int currentPage = 1)
         {
             pageSize = Math.Min(pageSize, 100);
+            currentPage = Math.Max(currentPage, 1); //setting the current page to at least 1
 
-            var tournamentDtos = await _serviceManager.TournamentService.GetTournamentsAsync(includeGames, pageSize);
+            var (items, totalItems) = await _serviceManager.TournamentService.GetTournamentsAsync(includeGames, pageSize, currentPage);
 
-            return Ok(tournamentDtos);
+            var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+            var response = new
+            {
+                Data = items,
+                Metadata = new
+                {
+                    TotalPages = totalPages,
+                    PageSize = pageSize,
+                    CurrentPage = currentPage,
+                    TotalItems = totalItems
+                }
+            };
+
+            return Ok(response);
         }
 
 
