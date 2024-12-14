@@ -38,7 +38,6 @@ namespace Tournament.Data.Repositories
                 .ToListAsync();
 
             return (items, totalItems);
-
         }
 
         public async Task<TournamentDetails> GetAsync(int id)

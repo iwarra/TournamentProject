@@ -19,9 +19,27 @@ namespace Tournament.Data.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<Game>> GetAllAsync()
+        public async Task<(IEnumerable<Game> Items, int TotalItems)> GetAllAsync(string? title = null, int pageSize = 20, int currentPage = 1)
         {
-            return await _context.Game.ToListAsync();
+            var query = _context.Game.AsQueryable();
+
+            var allGames = await query.ToListAsync();
+
+            if (!string.IsNullOrEmpty(title))
+            {
+                allGames = allGames
+                    .Where(g => g.Title.Contains(title, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
+
+            var totalItems = allGames.Count;
+
+            var items = allGames
+                .Skip((currentPage - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            return (items, totalItems);
         }
 
         public async Task<Game> GetAsync(int id)
