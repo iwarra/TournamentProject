@@ -75,6 +75,7 @@ namespace Tournament.Api
 
             app.UseAuthorization();
 
+            app.ConfigureExceptionHandler();
 
             app.MapControllers();
 

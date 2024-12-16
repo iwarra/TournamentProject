@@ -12,7 +12,7 @@ namespace Service.Contracts
     {
         Task<(IEnumerable<GameDto> Items, int TotalItems)> GetGamesAsync(string title, int pageSize, int currentPage);
         Task<GameDto> GetGameById(int id);
-        Task<(int id, GameDto GameDto)> CreateGameAsync(GameDto gameDto);
+        Task<(int id, GameDto GameDto)> CreateGameAsync(GameDto gameDto, int? tournamentId = null);
         Task<GameDto> UpdateGameAsync(int id, GameDto gameDto);
         Task<GameDto> DeleteGameAsync(int id);
     }

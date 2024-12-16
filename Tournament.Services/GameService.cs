@@ -30,8 +30,7 @@ namespace Tournament.Services
             {
                 return _mapper.Map<GameDto>(game);
             }
-            //ToDo: add return for if null
-            return null;
+            else throw new GameNotFoundException(id);
         }
 
         public async Task<(IEnumerable<GameDto> Items, int TotalItems)> GetGamesAsync(string title, int pageSize, int currentPage)
@@ -50,7 +49,7 @@ namespace Tournament.Services
             var existingGame = await _uow.GameRepository.GetAsync(id);
             if (existingGame == null)
             {
-                throw new KeyNotFoundException($"Tournament with ID {id} was not found.");
+                throw new GameNotFoundException(id);
             }
 
             _mapper.Map(gameDto, existingGame);
@@ -60,13 +59,49 @@ namespace Tournament.Services
             return gameDto;
         }
 
-        public async Task<(int id, GameDto GameDto)> CreateGameAsync(GameDto gameDto)
+        public async Task<(int id, GameDto GameDto)> CreateGameAsync(GameDto gameDto, int? tournamentId)
         {
-            var game = _mapper.Map<Game>(gameDto);
-            _uow.GameRepository.Add(game);
-            await _uow.CompleteAsync();
 
-            return (game.Id, gameDto);
+            try
+            {
+                TournamentDetails tournament = null;
+
+               if (tournamentId.HasValue)
+                {
+                    tournament = await _uow.TournamentRepository.GetAsync(tournamentId.Value);
+                }
+                if (tournament == null)
+                {
+                    throw new TournamentNotFoundException(tournamentId.Value);
+                }
+                if (tournament.Games.Count >= 10)
+                {
+                    throw new GameLimitExceededException(tournament.Title);
+                }
+
+                var game = _mapper.Map<Game>(gameDto);
+                if (tournament != null)
+                {
+                    tournament.Games.Add(game); 
+                }
+                _uow.GameRepository.Add(game);
+                await _uow.CompleteAsync();
+
+                return (game.Id, gameDto);
+            }
+
+            catch (TournamentNotFoundException ex)
+            {
+                throw;
+            }
+            catch (GameLimitExceededException ex)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
         }
 
         public async Task<GameDto> DeleteGameAsync(int id)
@@ -74,7 +109,7 @@ namespace Tournament.Services
             var game = await _uow.GameRepository.GetAsync(id);
             if (game == null)
             {
-                throw new KeyNotFoundException($"Tournament with ID {id} was not found.");
+                throw new GameNotFoundException(id);
             }
             _uow.GameRepository.Remove(game);
             await _uow.CompleteAsync();

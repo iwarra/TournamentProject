@@ -31,8 +31,7 @@ namespace Tournament.Services
             {
                 return _mapper.Map<TournamentDto>(tournament);
             }
-            //ToDo: add return for if null
-            return null;
+            else throw new TournamentNotFoundException(id);
         }
 
         public async Task<(IEnumerable<TournamentDto> Items, int TotalItems)> GetTournamentsAsync(bool includeGames = false, int pageSize = 20, int currentPage = 1)
@@ -51,7 +50,12 @@ namespace Tournament.Services
             var existingTournament = await _uow.TournamentRepository.GetAsync(id);
             if (existingTournament == null)
             {
-                throw new KeyNotFoundException($"Tournament with ID {id} was not found.");
+                throw new TournamentNotFoundException(id);
+            }
+
+            if (tournamentDto.Games != null && tournamentDto.Games.Count > 10)
+            {
+                throw new GameLimitExceededException(existingTournament.Title);
             }
 
             _mapper.Map(tournamentDto, existingTournament);
@@ -75,7 +79,7 @@ namespace Tournament.Services
             var tournament = await _uow.TournamentRepository.GetAsync(id);
             if (tournament == null)
             {
-                throw new KeyNotFoundException($"Tournament with ID {id} was not found.");
+                throw new TournamentNotFoundException(id);
             }
             _uow.TournamentRepository.Remove(tournament);
             await _uow.CompleteAsync();
